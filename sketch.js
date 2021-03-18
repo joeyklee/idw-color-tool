@@ -1,158 +1,182 @@
-let bbox;
-let dim;
+class ColorNode {
+  constructor(pos, colorOptions) {
+    this.pos = pos || { x: 0, y: 0 };
+    this.color = colorOptions || { h: 0, s: 0, b: 0 };
+    this.$h = null;
+    this.$s = null;
+    this.$b = null;
+  }
 
-let node1;
-let node2;
-let node3;
-let node4;
+  updateColor = (h, s, b) => {
+    this.color = { h, s, b };
+  };
 
-function setup() {
-    createCanvas(600, 600).parent("canvas-container");
-    colorMode(HSB)
-    rectMode(CENTER);
-    noStroke();
-
-    bbox = {
-        xmin: 0,
-        xmax: width,
-        ymin: 0,
-        ymax: height
+  getColorValues = () => {
+    return {
+      h: this.$h.value(),
+      s: this.$s.value(),
+      b: this.$b.value(),
     };
-    dim = width;
+  };
 
-
-    node1 = {
-        pos: {
-            x: width * 0.25,
-            y: width * 0.25
-        },
-        color: {
-            h: select("#node-1-h"),
-            s: select("#node-1-s"),
-            b: select("#node-1-b")
-        }
-
-    };
-    node2 = {
-        pos: {
-            x: width * 0.5,
-            y: width * 0.5
-        },
-        color: {
-            h: select("#node-2-h"),
-            s: select("#node-2-s"),
-            b: select("#node-2-b")
-        }
-
-    };
-    node3 = {
-        pos: {
-            x: width * 0.75,
-            y: width * 0.5
-        },
-        color: {
-            h: select("#node-3-h"),
-            s: select("#node-3-s"),
-            b: select("#node-3-b")
-        }
-
-    };
-    node4 = {
-        pos: {
-            x: width * 0.75,
-            y: width * 0.75
-        },
-        color: {
-            h: select("#node-4-h"),
-            s: select("#node-4-s"),
-            b: select("#node-4-b")
-        }
-    };
-
-    node1.color.h.changed(updateVal)
-    node1.color.s.changed(updateVal)
-    node1.color.b.changed(updateVal)
-
-    node2.color.h.changed(updateVal)
-    node2.color.s.changed(updateVal)
-    node2.color.b.changed(updateVal)
-
-    node3.color.h.changed(updateVal)
-    node3.color.s.changed(updateVal)
-    node3.color.b.changed(updateVal)
-
-    node4.color.h.changed(updateVal)
-    node4.color.s.changed(updateVal)
-    node4.color.b.changed(updateVal)
-
-    makePalette(bbox, dim, [node1, node2, node3, node4], 2);
-    noLoop();
+  attachColorSliders = ($h, $s, $b) => {
+    this.$h = $h;
+    this.$s = $s;
+    this.$b = $b;
+  };
 }
 
-// function draw(){
-//     background(220);
-// }
+class IdwGradient {
+  constructor(bbox, dim, colorNodes, decayValue) {
+    this.bbox = bbox || {
+      xmin: 0,
+      xmax: 100,
+      ymin: 0,
+      ymax: 100,
+    };
+    this.dim = dim || 100;
+    this.colorNodes = colorNodes || [];
+    this.decayValue = decayValue || 2;
+  }
 
-function updateVal(e) {
-    console.log(this)
-    console.log(e.currentTarget.value)
+  init = () => {
+    this.colorNodes.forEach((colorNode) => {
+      this.handleColorChange(colorNode);
+      colorNode.$h.changed(() => this.render());
+      colorNode.$s.changed(() => this.render());
+      colorNode.$b.changed(() => this.render());
+    });
+  };
 
-    makePalette(bbox, dim, [node1, node2, node3, node4], 2);
-}
+  render = () => {
+    this.makePalette();
+  };
 
-function makePalette(bbox, dim, dataArray, decay) {
+  handleColorChange = (colorNode) => {
+    const { h, s, b } = colorNode.getColorValues();
+    colorNode.updateColor(h, s, b);
+  };
 
+  updateVal(e) {
+    console.log(e.currentTarget.value);
+    this.makePalette();
+  }
 
+  getIdwVals = (colorNodes, key) => {
+    return colorNodes.map((colorNode) => {
+      this.handleColorChange(colorNode);
+      return {
+        x: colorNode.pos.x,
+        y: colorNode.pos.y,
+        val: colorNode.color[key],
+      };
+    });
+  };
 
+  makePalette = () => {
+    const h_vals = this.getIdwVals(this.colorNodes, "h");
+    const s_vals = this.getIdwVals(this.colorNodes, "s");
+    const b_vals = this.getIdwVals(this.colorNodes, "b");
 
-    let h_vals = dataArray.map(d => {
-        let data = {
-            x: d.pos.x,
-            y: d.pos.y,
-            val: d.color.h.value()
-        }
-
-        return data;
-        
-    })
-    let h_idw = new IDW(bbox, dim, h_vals, 2, "h").calculateMatrix();
-
-
-
-    let s_vals = dataArray.map(d => {
-        let data = {
-            x: d.pos.x,
-            y: d.pos.y,
-            val: d.color.s.value()
-        }
-
-        return data;
-        
-    })
-    let s_idw = new IDW(bbox, dim, s_vals, 2, "s").calculateMatrix();
-
-
-    let b_vals = dataArray.map(d => {
-        let data = {
-            x: d.pos.x,
-            y: d.pos.y,
-            val: d.color.b.value()
-        }
-
-        return data;
-        
-    })
-    let b_idw = new IDW(bbox, dim, b_vals, 2, "b").calculateMatrix();
-
-
+    const h_idw = new IDW(
+      this.bbox,
+      this.dim,
+      h_vals,
+      this.decayValue,
+      "h"
+    ).calculateMatrix();
+    const s_idw = new IDW(
+      this.bbox,
+      this.dim,
+      s_vals,
+      this.decayValue,
+      "s"
+    ).calculateMatrix();
+    const b_idw = new IDW(
+      this.bbox,
+      this.dim,
+      b_vals,
+      this.decayValue,
+      "b"
+    ).calculateMatrix();
 
     for (let x = 0; x < 600; x++) {
-        for (let y = 0; y < 600; y++) {
-            noStroke();
-            let c = color(round(h_idw[x][y]), round(s_idw[x][y]), round(b_idw[x][y]))
-            fill(c);
-            rect(x, y, 2, 2)
-        }
+      for (let y = 0; y < 600; y++) {
+        noStroke();
+        const c = color(
+          round(h_idw[x][y]),
+          round(s_idw[x][y]),
+          round(b_idw[x][y])
+        );
+        fill(c);
+        rect(x, y, 2, 2);
+      }
     }
+  };
+}
 
+let myGradient;
+
+function setup() {
+  createCanvas(600, 600).parent("canvas-container");
+  colorMode(HSB);
+  rectMode(CENTER);
+  noStroke();
+
+  const bbox = {
+    xmin: 0,
+    xmax: width,
+    ymin: 0,
+    ymax: height,
+  };
+  const dim = width;
+
+  const node1 = new ColorNode({
+    x: width * 0.25,
+    y: width * 0.25,
+  });
+  node1.attachColorSliders(
+    select("#node-1-h"),
+    select("#node-1-s"),
+    select("#node-1-b")
+  );
+
+  const node2 = new ColorNode({
+    x: width * 0.5,
+    y: width * 0.5,
+  });
+  node2.attachColorSliders(
+    select("#node-2-h"),
+    select("#node-2-s"),
+    select("#node-2-b")
+  );
+
+  const node3 = new ColorNode({
+    x: width * 0.75,
+    y: width * 0.5,
+  });
+  node3.attachColorSliders(
+    select("#node-3-h"),
+    select("#node-3-s"),
+    select("#node-3-b")
+  );
+
+  const node4 = new ColorNode({
+    x: width * 0.75,
+    y: width * 0.75,
+  });
+  node4.attachColorSliders(
+    select("#node-4-h"),
+    select("#node-4-s"),
+    select("#node-4-b")
+  );
+
+  myGradient = new IdwGradient(bbox, dim, [node1, node2, node3, node4], 2);
+  myGradient.init();
+
+  noLoop();
+}
+
+function draw() {
+  myGradient.render();
 }
