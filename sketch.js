@@ -1,10 +1,10 @@
 let bbox;
 let dim;
 
-let skin;
-let eyes;
-let hair;
-let organs;
+let node1;
+let node2;
+let node3;
+let node4;
 
 function setup() {
     createCanvas(600, 600).parent("canvas-container");
@@ -21,71 +21,71 @@ function setup() {
     dim = width;
 
 
-    skin = {
+    node1 = {
         pos: {
             x: width * 0.25,
             y: width * 0.25
         },
         color: {
-            h: select("#skin-h"),
-            s: select("#skin-s"),
-            b: select("#skin-b")
+            h: select("#node-1-h"),
+            s: select("#node-1-s"),
+            b: select("#node-1-b")
         }
 
     };
-    eyes = {
+    node2 = {
         pos: {
             x: width * 0.5,
             y: width * 0.5
         },
         color: {
-            h: select("#eyes-h"),
-            s: select("#eyes-s"),
-            b: select("#eyes-b")
+            h: select("#node-2-h"),
+            s: select("#node-2-s"),
+            b: select("#node-2-b")
         }
 
     };
-    hair = {
+    node3 = {
         pos: {
             x: width * 0.75,
             y: width * 0.5
         },
         color: {
-            h: select("#hair-h"),
-            s: select("#hair-s"),
-            b: select("#hair-b")
+            h: select("#node-3-h"),
+            s: select("#node-3-s"),
+            b: select("#node-3-b")
         }
 
     };
-    organs = {
+    node4 = {
         pos: {
             x: width * 0.75,
             y: width * 0.75
         },
         color: {
-            h: select("#organs-h"),
-            s: select("#organs-s"),
-            b: select("#organs-b")
+            h: select("#node-4-h"),
+            s: select("#node-4-s"),
+            b: select("#node-4-b")
         }
     };
 
-    skin.color.h.changed(updateVal)
-    skin.color.s.changed(updateVal)
-    skin.color.b.changed(updateVal)
+    node1.color.h.changed(updateVal)
+    node1.color.s.changed(updateVal)
+    node1.color.b.changed(updateVal)
 
-    eyes.color.h.changed(updateVal)
-    eyes.color.s.changed(updateVal)
-    eyes.color.b.changed(updateVal)
+    node2.color.h.changed(updateVal)
+    node2.color.s.changed(updateVal)
+    node2.color.b.changed(updateVal)
 
-    hair.color.h.changed(updateVal)
-    hair.color.s.changed(updateVal)
-    hair.color.b.changed(updateVal)
+    node3.color.h.changed(updateVal)
+    node3.color.s.changed(updateVal)
+    node3.color.b.changed(updateVal)
 
-    organs.color.h.changed(updateVal)
-    organs.color.s.changed(updateVal)
-    organs.color.b.changed(updateVal)
+    node4.color.h.changed(updateVal)
+    node4.color.s.changed(updateVal)
+    node4.color.b.changed(updateVal)
 
-    makePalette(bbox, dim, [skin, eyes, hair, organs], 2);
+    makePalette(bbox, dim, [node1, node2, node3, node4], 2);
     noLoop();
 }
 
@@ -97,7 +97,7 @@ function updateVal(e) {
     console.log(this)
     console.log(e.currentTarget.value)
 
-    makePalette(bbox, dim, [skin, eyes, hair, organs], 2);
+    makePalette(bbox, dim, [node1, node2, node3, node4], 2);
 }
 
 function makePalette(bbox, dim, dataArray, decay) {
